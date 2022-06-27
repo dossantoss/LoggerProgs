@@ -94,7 +94,7 @@ BeginProg
 		
 		'05103 Wind Speed & Direction Sensor measurements WS_kph and WindDir:
 		PulseCount(WS_kph,1,1,1,1,0.3528,0)
-		BrHalf(WindDir,1,mV2500,5,1,1,2500,True,0,_60Hz,355,0)
+		BrHalf(WindDir,1,mV2500,5,Vx1,1,2500,True,0,_60Hz,355,0)
 		If WindDir>=360 Then WindDir=0
 		
 		'HV10 Temperature & Relative Humidity measurements AirTC and RH:
@@ -104,7 +104,7 @@ BeginProg
 		'CS700 Rain Gauge measurement Rain_mm:
 		PulseCount(Rain_mm,1,2,2,0,0.254,0)
 		'107 Temperature Probe measurement T107_C:
-		Therm107(T107_C,1,6,1,0,_60Hz,1.0,0.0)
+		Therm107(T107_C,1,6,Vx2,0,_60Hz,1.0,0.0)
 		
    'PackBus ID=60 User Entered Calculation
     PBID = Status.PakBusAddress
