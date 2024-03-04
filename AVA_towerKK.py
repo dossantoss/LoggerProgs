@@ -50,7 +50,7 @@ Public PBID As Long
 Alias TRHData_40m(1)=AirTC_40m
 Alias TRHData_40m(2)=RH_40m
 
-'Units declarations
+'Units declaration
 
 Units BattV=Volts
 Units AirTC_2m=Deg C
