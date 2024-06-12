@@ -11,6 +11,7 @@
 'edited by Sergio dos Santos 12/01/2020 Replaced CS215 T&RH by HMP60
 'edited by Sergio dos Santos 10/13/2021 Replaced HMP60 by HygroVue10
 'edited by Sergio dos Santos 6/27/2022 New CMP10 and CMP3 SR multipliers
+'edited by Sergio dos Santos 6/12/2024 New CMP10 and CMP3 SR multipliers
 
 'Declare Variables
 Public Batt_Volt
@@ -83,14 +84,14 @@ BeginProg
 		'Default Datalogger Battery Voltage measurement Batt_Volt:
 		Battery(Batt_Volt)
 		
-		'CMP3(15.49 microV/w/m^2) - North Pyranometer
+		'CMP3(11.52 microV/w/m^2) - North Pyranometer
 		VoltDiff(SlrW_N,1,mV250,1,True,0,_60Hz,1,0)
 		If SlrW_N<0 Then SlrW_N=0
-		SlrW_N=SlrW_N*(1000/15.49)
-		'CMP10(9.80 microV/w/m^2) - South Pyranometer
+		SlrW_N=SlrW_N*(1000/11.52)
+		'CMP10(8.73 microV/w/m^2) - South Pyranometer
 		VoltDiff(SlrW_S,1,mV250,2,True,0,_60Hz,1,0)
 		If SlrW_S<0 Then SlrW_S=0
-		SlrW_S=SlrW_S*(1000/9.80)
+		SlrW_S=SlrW_S*(1000/8.73)
 		
 		'05103 Wind Speed & Direction Sensor measurements WS_kph and WindDir:
 		PulseCount(WS_kph,1,1,1,1,0.3528,0)
