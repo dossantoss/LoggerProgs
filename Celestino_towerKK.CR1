@@ -1,0 +1,189 @@
+'CR1000
+'Created by Sergio dos Santos
+'STRI - Feb. 10th 2015 - Initial program for the Celestino Station - Logger 1010 
+'June 26, 2015 - Sergio and Erick - Pyranometer2 replaced by SP Lite2 from K&Z
+'Sensitivity of SP Lite2 SN 137695 is (62.5/1000) mw/wm-2
+'July 29, 2015 - NovaLynx TB replaced by CS700/TB3
+'January 04, 2017 - HMP60 T&RH replaced by CS215 T&RH
+'March 21,2017 - Replaced PAR south sensor new sensor SN140511 (multiplier 8.54 uvolt/umol/s*m^2)
+'March 29,2017 - PAR South Multiplier adjusted by 10% - based on field tests
+'July 6th,2017 - Installed SPLite2 on North side 
+'Sept 18th 2017 - Removed RH rounding near 100% - SDS
+'March 14th, 2018 - Changed AutRange to mV250 on the Voltdiff() instruction for both PAR (N&S) sensors...
+'the AutoRange instruction was generating NAN values.
+'May 11, 2018 - Replaced south sensor by CMP3(13.09micro-v/w/m2) && north sensor by SPlite-2(68.3micro-v/w/m2)
+'June 20, 2018 - Rplaced PAR sensors - south (4.89), North(8.57)
+'November 23, 2018 - Moved CMP3(13.09micro-v/w/m2) to north side && Installed CMP10(8.69micro-v/w/m2) on south side
+'September 29, 2020 - Installed T&RH HMP6, 'PAR(8.39 mic-v/w/m2)south, PAR(8.65 mic-v/w/m2)north and Anem.05103
+'Oct 6th, 2020 - voltage range for CMP3 and CMP10 set to mV25
+'Oct 12th 2020 - Correction on the SlrMJ calculation (wrong formula running from Sept.29 to Oct.12)
+'12/10/2021 - Replaced North CMP3 and South CMP10 Pyranometers
+'7/13/2022 - Replaced Barometer - installed PTB110
+
+'Declare Variables and Units
+Public BattV
+'T&RH variables
+Public AirTC
+Public RH
+'Wind variables
+Public WS_ms
+Public WindDir
+'BAR variables
+Public BP_mmHg
+'Solar radiation variables
+Public SlrW
+Public SlrMJ
+Public SlrW_2
+
+'PAR Variables
+Public PAR_Den
+Public PAR_Den_2
+'Rain
+Public RainTB3N_mm
+Public RainTB3S_mm
+Public PBID
+'Evapotranspiration
+'Public ETrs
+'Public ClrSky_Sr
+
+'Units declarations
+Units BattV=Volts
+Units AirTC=Deg C
+Units RH=%
+Units WS_ms=meters/second
+Units WindDir=Degrees
+Units BP_mmHg=mmHg
+
+Units SlrW=W/m^2
+Units SlrW_2=W/m^2
+Units SlrMJ=MJ/m^2
+
+Units PAR_Den=umol/s*m^2
+Units PAR_Den_2=umol/s*m^2
+Units RainTB3N_mm=mm
+Units RainTB3S_mm=mm
+'Units ETrs = mm
+'Units ClrSky_Sr = MJ/m^2
+
+'Data Table1 - 5 minute readings
+DataTable(Table1,True,-1)
+	DataInterval(0,5,Min,10)
+	
+	Sample(1,PBID,UINT2)
+	FieldNames("PBID")
+	
+	Maximum(1,AirTC,FP2,False,False)
+	FieldNames("AirTC_Max")
+	Minimum(1,AirTC,FP2,False,False)
+	FieldNames("AirTC_Min")
+	Average(1,AirTC,FP2,False)
+	FieldNames("AirTC_Avg")
+	
+	Maximum(1,RH,FP2,False,False)
+	FieldNames("RH_Max")
+	Minimum(1,RH,FP2,False,False)
+	FieldNames("RH_Min")
+	Average(1,RH,FP2,False)
+	FieldNames("RH_Avg")
+	
+	Maximum(1,WS_ms,FP2,False,False)
+	FieldNames("WS_ms_Max")
+	Minimum(1,WS_ms,FP2,False,False)
+	FieldNames("WS_ms_Min")
+	WindVector (1,WS_ms,WindDir,FP2,False,0,0,0)
+	FieldNames("WS_ms_S_WVT,WindDir_D1_WVT,WindDir_SD1_WVT")
+	
+	Average(1,SlrW,FP2,False)
+	FieldNames("SlrW_N_Avg")
+	Average(1,SlrW_2,FP2,False)
+	FieldNames("SlrW_S_Avg")
+	
+	Average(1,PAR_Den,FP2,False)
+	FieldNames("PARDen_N_Avg")
+	Average(1,PAR_Den_2,FP2,False)
+	FieldNames("PARDen_S_Avg"
+	
+	Totalize(1,RainTB3N_mm,FP2,False)
+	FieldNames("RainTB3N_mm_Tot")
+	
+	Totalize(1,RainTB3S_mm,FP2,False)
+	FieldNames("RainTB3S_mm_Tot")
+	
+EndTable
+
+'Data Table 2 - Hourly readings
+DataTable(Table2,True,-1)
+	DataInterval(0,60,Min,10)
+	Sample(1,PBID,UINT2)
+	FieldNames("PBID")
+	
+	Minimum(1,BattV,FP2,False,False)
+	FieldNames("BattV_Min")
+	
+	Average(1,BP_mmHg,FP2,False)
+	FieldNames("BP_mmHg_Avg")
+	
+	ETsz(AirTC,RH,WS_ms,SlrMJ,-79.72656,9.21142,300,10,1,FP2,False)
+	FieldNames("ETrs,ClrSky_Sr")
+	
+EndTable
+
+'Main Program
+BeginProg
+	Scan(5,Sec,1,0)
+	 'Default Datalogger Battery Voltage measurement BattV
+		Battery(BattV)
+	
+   'HMP60 T&RH Sensor measurements AirTC AND RH:
+		VoltSe(AirTC,1,mV2500,13,0,0,_60Hz,0.1,-40)
+		VoltSe(RH,1,mV2500,14,0,0,_60Hz,0.1,0)
+		If (RH>100) AND (RH<108) Then RH=100
+	
+	 '05103 Wind Speed & Direction Sensor measurements WS_ms and WindDir
+		PulseCount(WS_ms,1,1,1,1,0.098,0)
+		BrHalf(WindDir,1,mV2500,3,1,1,2500,True,0,_60Hz,355,0)
+		If WindDir>=360 Then WindDir=0
+		
+	 'CS100 Barometric Pressure Sensor measurement BP_mmHg
+	  If IfTime(4,5,Min) Then PortSet(1,1)
+		If IfTime(0,5,Min) Then
+			VoltSe(BP_mmHg,1,mv5000,4,1,0,_60Hz,0.240,500)
+			BP_mmHg=BP_mmHg*0.75006
+			PortSet(1,0)
+		EndIf
+		
+	 'CMP3 175465 M=13.11 Pyranometer measurements SlrW(north)	 
+		VoltDiff(SlrW,1,mV25,3,True,0,_60Hz,1,0)
+		If SlrW<0 Then SlrW=0	
+		SlrW=SlrW*(1000/13.11)
+	
+	 'CMP10 195968 M=9.27 Pyranometer measurements SlrW_2(south)
+	 'Converting w/m2 to MJ/m2 over 5second integration (1 watt = 1J/S)
+		VoltDiff(SlrW_2,1,mV25,5,True,0,_60Hz,1,0)
+		SlrMJ=SlrW_2*(1000/9.27)*(1/1000000)*(5)
+		If SlrW_2<0 Then SlrW_2=0
+		SlrW_2=SlrW_2*(1000/9.27)
+		
+	 'PSQ1 Quantum(8.65) Sensor measurements PAR_Den-SN140407 (north)
+		VoltDiff(PAR_Den,1,mV250,4,True,0,_60Hz,1,0)
+		If PAR_Den<0 Then PAR_Den=0
+		PAR_Den=(PAR_Den*1000)/8.65
+		
+	 'PSQ1 Quantum(8.39) Sensor measurements PAR_Den_2-SN160955 (south)
+		VoltDiff(PAR_Den_2,1,mV250,6,True,0,_60Hz,1,0)
+		If PAR_Den_2<0 Then PAR_Den_2=0
+		PAR_Den_2= (PAR_Den_2*1000)/8.39
+		
+	 'CS700/TB3 North Rain Gauge measurement RainTB3N_mm
+		PulseCount(RainTB3N_mm,1,2,2,0,0.254,0)
+	 'CS700/TB3 South Rain Gauge measurement RainTB3S_mm
+		PulseCount(RainTB3S_mm,1,12,2,0,0.254,0)
+		
+		'PackBus ID
+		 PBID=1010
+		 
+		'Call Data Tables and Store Data
+		CallTable(Table1)
+		CallTable(Table2)
+	NextScan
+EndProg
